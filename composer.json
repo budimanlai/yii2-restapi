@@ -1,0 +1,18 @@
+{
+    "name": "budimanlai/yii2-restapi",
+    "description": "Restfull API for yii2",
+    "type": "yii2-extension",
+    "authors": [
+        {
+            "name": "Budiman Lai",
+            "email": "budiman.lai@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "budimanlai\\restapi\\": "src/"
+        }
+    },
+    "minimum-stability": "dev",
+    "require": {}
+}
