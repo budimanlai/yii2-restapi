@@ -23,17 +23,16 @@ class MyResponse extends Response {
                 $response->data = [
                     'success' => false,
                     'message' => $response->data['message'],
-                    'data' => null,
-                    'status' => $response->statusCode,
-                    'error' => $this->modelErrors
                 ];
                 
                 if (YII_DEBUG) {
                     $response->data['debug'] = $debug;
                 }
+                if (!empty($this->modelErrors)) {
+                    $response->data['error'] = $this->modelErrors;
+                }
                 unset($response->data['type']);
-            }
-            
+            } 
         });
     }
 }

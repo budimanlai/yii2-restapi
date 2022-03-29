@@ -18,47 +18,47 @@ class MyUserModel extends ActiveRecord {
         $data->setCurrentTime(time());
         
         // validate token data
-        if (!$token->validate($data)) { throw new \yii\web\BadRequestHttpException("Bad request with expired token"); }
+        if (!$token->validate($data)) { throw new \yii\web\BadRequestHttpException("Token expired"); }
        
         $claims = $token->getClaims();
        
         // validate API Key
-        Yii::$app->request->apiKey = \budimanlai\restapi\models\AppKey::find()
+        Yii::$app->request->app = \budimanlai\restapi\models\App::find()
             ->where([
-                'skey' => $claims['aid'],
+                'api_key' => $claims['iss'],
                 'status' => 'active'
             ])
             ->one();
         
-        if (Yii::$app->request->apiKey == null) { throw new \yii\web\BadRequestHttpException("Bad request with invalid API Key. Please contact your administrator"); }
+        if (Yii::$app->request->app == null) { throw new \yii\web\BadRequestHttpException("Invalid API Key. Please contact your administrator"); }
         
-        $s = Yii::$app->request->apiKey->auth_key . $claims['iat'];
+        $s = Yii::$app->request->app->auth_key . $claims['iat'];
         if (!empty($claims['sid'])) {
             //$s.= $claims['sid'];
         }
         if ($type) {
-            if (!isset($claims['sid'])) { throw new \yii\web\BadRequestHttpException("Bad request. Invalid user session or session not found"); }
+            if (!isset($claims['sid'])) { throw new \yii\web\BadRequestHttpException("Invalid user session or session not found"); }
             
             // check user session
             $rs = Yii::$app->db->createCommand("select * from user_access
                 where app_id = :AID and BINARY tokens = :TOKEN and remove_on is null", [
-                    ':AID' => Yii::$app->request->apiKey->id,
+                    ':AID' => Yii::$app->request->app->id,
                     ':TOKEN' => $claims['sid']
                 ])->queryOne();
             
-            if ($rs == null) { throw new \yii\web\BadRequestHttpException("Bad request. Invalid user session or session not found"); }
+            if ($rs == null) { throw new \yii\web\BadRequestHttpException("Invalid user session or session not found"); }
             
             Yii::$app->request->session = $rs;
         }
         
         if (!empty($claims['sid'])) { $s.= $claims['sid']; }
         
-        $key_string = str_replace("=", "", base64_encode(hash('sha256', $s)));
+        $key_string = base64_encode(hash('sha256', $s));
         
         $signer = $jwt->getSigner('HS256');
         $key = new \Lcobucci\JWT\Signer\Key($key_string);
        
-        if (!$token->verify($signer, $key)) { throw new \yii\web\BadRequestHttpException("Bad request. Invalid signature"); }
+        if (!$token->verify($signer, $key)) { throw new \yii\web\BadRequestHttpException("Invalid signature"); }
        
         if ($type == true) {
             $model = self::findOne($rs['user_id']);
@@ -74,10 +74,10 @@ class MyUserModel extends ActiveRecord {
             $model = new User();
         }
         
-        Yii::$app->request->apiKey->last_access = date("Y-m-d H:i:s");
-        Yii::$app->request->apiKey->save();
+        Yii::$app->request->app->last_access_at = date("Y-m-d H:i:s");
+        Yii::$app->request->app->save();
         
-        return $model;
+        return new User();
     }
     
 }

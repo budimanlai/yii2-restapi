@@ -1,0 +1,45 @@
+// from table app
+var app_key = 'c_qjliKB0-uD5JsapmXHEMoqME6qhBm2';  // Android
+var auth_key = 'Foas4bMkXPUVK2k-1xjEVQJ0i-YKG8X2TxkwFnGJXtMvlhMlyHOE2w8j8FXpWutR';
+var sid = '';
+
+var iat = 1643733515; // Math.floor(new Date().getTime() / 1000);
+var aa = sid == "" ? auth_key + iat : auth_key + iat + sid;
+var hash = CryptoJS.SHA256(aa).toString();
+var secret = Buffer.from(hash).toString('base64');
+
+console.log("sKey: " + aa);
+
+///////////////////
+body = pm.request.body == null ? "" : pm.request.body.raw;
+
+//iat = Math.floor(new Date().getTime() / 1000);
+
+var header = Buffer.from('{"alg": "HS256","typ": "JWT"}').toString('base64');
+header = header.replace(/=+$/, '');
+header = header.replace(/\+/g, '-');
+header = header.replace(/\//g, '_');
+
+payload = {
+    iat: iat,
+    iss: app_key,
+    sid: sid,
+};
+
+var payload64 = Buffer.from(JSON.stringify(payload)).toString('base64');
+payload64 = payload64.replace(/=+$/, '');
+payload64 = payload64.replace(/\+/g, '-');
+payload64 = payload64.replace(/\//g, '_');
+
+var signature = CryptoJS.HmacSHA256(header + '.' + payload64, secret).toString(CryptoJS.enc.Base64);
+signature = signature.replace(/=+$/, '');
+signature = signature.replace(/\+/g, '-');
+signature = signature.replace(/\//g, '_');
+
+console.log(secret);
+console.log(signature);
+
+pm.request.headers.add({
+    key: 'Authorization',
+    value: `Bearer ` + header + '.' + payload64 + '.' + signature
+})

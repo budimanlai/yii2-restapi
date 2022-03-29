@@ -18,7 +18,7 @@ class MyActiveController extends ActiveController {
         
         $behaviors['basicAuth'] = [
             'class' => JwtValidationData::className(),
-            'check_user_session' => $this->check_user_session
+            'check_user_session' => $this->check_session
         ];
         
         return $behaviors;

@@ -1,8 +1,9 @@
 <?php
-namespace api\library;
+namespace budimanlai\restapi;
 
 use Yii;
 use sizeg\jwt\JwtHttpBearerAuth as SizegJwt;
+use common\models\User;
 
 class JwtHttpBearerAuth extends SizegJwt {
     
@@ -27,7 +28,7 @@ class JwtHttpBearerAuth extends SizegJwt {
             } else {
                 $identity = $user->loginByAccessToken($token, $this->check_session);
             }
-
+            
             return $identity;
         }
 
